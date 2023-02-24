@@ -1,45 +1,65 @@
 pipeline {
   agent any
   // any, none, label, node, docker, dockerfile, kubernetes
-  tools {
+
+  tools{
     maven 'my_maven'
   }
-  
+
   environment {
-    gitName = 'pcmin929'
-    gitEmail = 'pcmin929@gmail.com'
-    gitWebaddress = 'https://github.com/pcmin929/sb_code.git'
-    gitSshaddress = 'git@github.com:pcmin929/sb_code.git'
-    gitCredential = 'git_cre' // github credential 생성시의 ID
+    gitName = 'oolr'
+    gitEmail = 'jyy013@gmail.com'
+    gitWebaddress = 'https://github.com/oolr/sb_code.git'
+    gitSshaddress = 'git@github.com:oolr/sb_code.git'
+    gitCredential = 'git_cre' //github credential 생성시의 ID
+    dockerHubRegistry = 'jyy0103/sbimage'
   }
+
 
   stages {
     stage('Checkout Github') {
       steps {
         checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: gitCredential, url: gitWebaddress]]])
       }
-      post {
+   `  post {
         failure {
-          echo 'Repository clone failure'
+            echo 'Repository clone failure'
         }
         success {
-          echo 'Repository clone success'
+            echo 'Repository clone success'
         }
-      }
+     }
     }
+
     stage('Maven Build') {
       steps {
         sh 'mvn clean install'
-        // maven 플러그인이 미리 설치 되어있어야 함.
+        // maven 플러그인이 미리 설치 되어 있어야함
       }
-      post {
+   `  post {
         failure {
-          echo 'maven build failure'
+            echo 'Maven build failure'
         }
         success {
-          echo 'maven build success'
+            echo 'Maven build success'
         }
+     }
+    }
+    stage('Docker image Build') {
+      steps {
+        sh "docker build -t ${dockerHubRegistry}:${currentBuild.number} ."
+        sh "docker build -t ${dockerHubRegistry}:latest ."
+        // jyy01-3/sbimage:4  이런식으로 빌드가 될 것이다.
+        // currentBuild.number 젠킨스에서 제공하는 빌드넘버변수.
       }
+   `  post {
+        failure {
+            echo 'Docker image build failure'
+        }
+        success {
+            echo 'Docker image build success'
+        }
+     }
     }
   }
 }
