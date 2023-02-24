@@ -46,6 +46,7 @@ pipeline {
         }
      }
     }
+
     stage('Docker image Build') {
       steps {
         sh "docker build -t ${dockerHubRegistry}:${currentBuild.number} ."
@@ -62,6 +63,7 @@ pipeline {
         }
      }
     }
+
     stage('Docker image Push') {
       steps {
         withDockerRegistry(credentialsId: dockerHubRegistryCredential, url: '') {
@@ -70,8 +72,6 @@ pipeline {
             sh "docker push ${dockerHubRegistry}:${currentBuild.number}"
             sh "docker push ${dockerHubRegistry}:latest"
           }
-
-
       }
       post {
         failure {
@@ -82,5 +82,21 @@ pipeline {
         }
      }
     }
+
+    stage('Docker container deploy') {
+      steps {       
+            sh "docker rm -f sb"
+            sh "docker run -dp 5656:8085 --name sb ${dockerHubRegistry}:${currentBuild.number}"
+          }
+      }
+      post {
+        failure {
+            echo 'Docker container deploy failure'
+        }
+        success {
+            echo 'Docker container deploy success'
+        }
+     }
+
+    }
   }
-}
