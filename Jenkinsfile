@@ -52,7 +52,7 @@ pipeline {
         // jyy01-3/sbimage:4  이런식으로 빌드가 될 것이다.
         // currentBuild.number 젠킨스에서 제공하는 빌드넘버변수.
       }
-     post {
+      post {
         failure {
             echo 'Docker image build failure'
         }
